@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    private const float tileOffset = 0.866f;
+    public float TileOffset => tileOffset;
+
     private static GameController instance;
     public static GameController Instance => instance;
 
@@ -15,6 +18,11 @@ public class GameController : MonoBehaviour
     private TextureLookup textureLookup;
     public TextureLookup TextureLookup => textureLookup;
 
+    private Vector3 mouseWorldPosition;
+    public Vector3 MouseWorldPosition => mouseWorldPosition;
+
+    private Plane plane = new Plane(Vector3.up, 0);
+
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -24,5 +32,15 @@ public class GameController : MonoBehaviour
         }
 
         instance = this;
+    }
+
+    private void Update()
+    {
+        float distance;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        if (plane.Raycast(ray, out distance))
+        {
+            mouseWorldPosition = ray.GetPoint(distance);
+        }
     }
 }

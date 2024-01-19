@@ -1,3 +1,4 @@
+using FriedSynapse.FlowEnt;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,11 +24,12 @@ public class MoveableTile : MonoBehaviour, BaseTile
     private Texture faceTexture;
     public Texture FaceTexture => faceTexture;
 
-    private Vector3 mouseWorldPosition;
-    private Plane plane = new Plane(Vector3.up, 0);
-
     private bool isBeingHeld;
     public bool IsBeingHeld => isBeingHeld;
+
+    Tween moveTileTween;
+
+    Vector3? SnapPosition;
 
     private void OnMouseDown()
     {
@@ -47,22 +49,37 @@ public class MoveableTile : MonoBehaviour, BaseTile
 
     private void Drop()
     {
+        if (SnapPosition != null)
+        {
+
+            return;
+        }
+
         isBeingHeld = false;
         RB.isKinematic = false;
     }
 
     private void Update()
     {
-        if (IsBeingHeld)
+        moveTileTween?.Stop();
+
+        if (IsBeingHeld && SnapPosition != null)
         {
-            float distance;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (plane.Raycast(ray, out distance))
-            {
-                mouseWorldPosition = ray.GetPoint(distance);
-                mouseWorldPosition.y = YOffset;
-            }
-            transform.position = mouseWorldPosition;
+            moveTileTween = new Tween(0.05f)
+                .SetEasing(Easing.EaseOutSine)
+                .For(transform)
+                    .MoveTo(SnapPosition.Value)
+                .Start();
+        }
+        else if (IsBeingHeld)
+        {
+            Vector3 mouseWithYOffset = GameController.Instance.MouseWorldPosition;
+            mouseWithYOffset.y = YOffset;
+            moveTileTween = new Tween(0.1f)
+                .SetEasing(Easing.EaseOutSine)
+                .For(transform)
+                    .MoveTo(mouseWithYOffset)
+                .Start();
         }
     }
 }
