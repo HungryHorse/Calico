@@ -31,9 +31,14 @@ public class MoveableTile : MonoBehaviour, BaseTile
 
     Vector3? SnapPosition;
 
+    private bool isStatic = false;
+
     private void OnMouseDown()
     {
-        PickUp();
+        if (moveTileTween?.PlayState != PlayState.Playing && CanBePickedUp())
+        {
+            PickUp();
+        }
     }
 
     private void OnMouseUp()
@@ -51,35 +56,47 @@ public class MoveableTile : MonoBehaviour, BaseTile
     {
         if (SnapPosition != null)
         {
-
+            isBeingHeld = false;
+            isStatic = true;
+            GameController.Instance.CurrentPlayer.PlayerBoard.PlaceTile(this);
             return;
         }
 
+        moveTileTween?.Stop();
         isBeingHeld = false;
         RB.isKinematic = false;
     }
 
-    private void Update()
+    public void MoveToPosition(Vector3 positionToMoveTo, float time)
     {
         moveTileTween?.Stop();
-
-        if (IsBeingHeld && SnapPosition != null)
-        {
-            moveTileTween = new Tween(0.05f)
+        moveTileTween = new Tween(time)
                 .SetEasing(Easing.EaseOutSine)
                 .For(transform)
-                    .MoveTo(SnapPosition.Value)
+                    .MoveTo(positionToMoveTo)
                 .Start();
+    }
+
+    private void Update()
+    {
+        if (IsBeingHeld && SnapPosition != null)
+        {
+            MoveToPosition(SnapPosition.Value, 0.05f);
         }
         else if (IsBeingHeld)
         {
             Vector3 mouseWithYOffset = GameController.Instance.MouseWorldPosition;
             mouseWithYOffset.y = YOffset;
-            moveTileTween = new Tween(0.1f)
-                .SetEasing(Easing.EaseOutSine)
-                .For(transform)
-                    .MoveTo(mouseWithYOffset)
-                .Start();
+            MoveToPosition(mouseWithYOffset, 0.1f);
         }
+    }
+
+    private bool CanBePickedUp()
+    {
+        bool canBePickedUp = true;
+
+        canBePickedUp = !isStatic;
+
+        return canBePickedUp;
     }
 }

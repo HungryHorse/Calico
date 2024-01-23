@@ -18,6 +18,10 @@ public class GameController : MonoBehaviour
     private TextureLookup textureLookup;
     public TextureLookup TextureLookup => textureLookup;
 
+    [SerializeField]
+    private Player currentPlayer;
+    public Player CurrentPlayer => currentPlayer;
+
     private Vector3 mouseWorldPosition;
     public Vector3 MouseWorldPosition => mouseWorldPosition;
 
